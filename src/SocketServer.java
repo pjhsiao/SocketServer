@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -31,38 +34,60 @@ public class SocketServer {
 		private final Socket socket;
 		private final File f = new File("data.log");
 		private final FileOutputStream out;
+		private final OutputStream os;
+		private final InputStream is;
 		
-		public Handler(Socket socket) throws FileNotFoundException {
+		public Handler(Socket socket) throws IOException {
 			System.out.print("New Incomming Socket: " + socket.toString());
 			this.socket = socket;
 			this.out = new FileOutputStream(f);
+			os = socket.getOutputStream();
+			is = socket.getInputStream();
 		}
 
 		@Override
 		public void run() {
-			try (DataInputStream in = new DataInputStream(socket.getInputStream()) ){
-				ByteArrayOutputStream o = new ByteArrayOutputStream();
-				for (byte b = in.readByte(); ;b = in.readByte() ) {
+			try (DataInputStream in = new DataInputStream(is);
+					PrintWriter pw = new PrintWriter(os);
+					ByteArrayOutputStream o = new ByteArrayOutputStream()){
+//				for (byte b = in.readByte(); ;b = in.readByte() ) {
+//					switch(b) {
+//					case 0x0A: o.write(b);
+//							   parser(o.toByteArray());
+//							   o.reset();
+//							   break;
+//					default: o.write(b);
+//					}
+//				}
+				byte b;
+				while ( (b = in.readByte())!=-1 ) {
 					switch(b) {
 					case 0x0A: o.write(b);
-							   parser(o.toByteArray());
+							   String reqMsg = writeDown(o.toByteArray());
 							   o.reset();
+							   pw.write(reqMsg);
+							   pw.flush();
+							   socket.close();
 							   break;
 					default: o.write(b);
 					}
 				}
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
 		
-		public void parser(byte[] b) {
+		public String writeDown(byte[] b) {
+			String msg = new String(b);
 			try {
-				System.out.print("Data in size: " + b.length);
 				out.write(b);
+				System.out.println("Data in size: " + b.length);
+				System.out.println("Data is : " + msg);
 			}catch (Exception e) {
 				e.printStackTrace();
 			}
+			return msg;
 		}
 		
 	}

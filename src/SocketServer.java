@@ -50,26 +50,17 @@ public class SocketServer {
 			try (DataInputStream in = new DataInputStream(is);
 					PrintWriter pw = new PrintWriter(os);
 					ByteArrayOutputStream o = new ByteArrayOutputStream()){
-//				for (byte b = in.readByte(); ;b = in.readByte() ) {
-//					switch(b) {
-//					case 0x0A: o.write(b);
-//							   parser(o.toByteArray());
-//							   o.reset();
-//							   break;
-//					default: o.write(b);
-//					}
-//				}
-				byte b;
-				while ( (b = in.readByte())!=-1 ) {
-					switch(b) {
-					case 0x0A: o.write(b);
-							   String reqMsg = writeDown(o.toByteArray());
-							   o.reset();
-							   pw.write(reqMsg);
-							   pw.flush();
-							   socket.close();
-							   break;
-					default: o.write(b);
+				
+				for (byte b = in.readByte(); ;b = in.readByte() ) {
+					if(0x0A == b) {
+					   String reqMsg = writeDown(o.toByteArray());
+					   o.reset();
+					   pw.write(reqMsg);
+					   pw.flush();
+					   socket.close();
+					   break;
+					}else {
+						o.write(b);
 					}
 				}
 				

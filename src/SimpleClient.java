@@ -1,10 +1,12 @@
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
 public class SimpleClient {
 	public static void main(String[] args) throws Exception {
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 400; i++) {
+//			Thread.currentThread().sleep(300);
 			new Thread(new SocketSub(9909)).start();
 		}
 	}
@@ -26,18 +28,23 @@ class SocketSub implements Runnable{
 			 Socket socket = new Socket(ip, port);
 			 OutputStream os = socket.getOutputStream();
 			 InputStream is = socket.getInputStream();
+
 //			 os.write(p7.getBytes());
-		     os.write(new String("helloworld how r you\n").getBytes());
+		     os.write(new String("helloworld how are you\n").getBytes());
 			 os.flush();
 			 System.out.println("socket client send");
 			 
 			 int temp = -1;
 			 System.out.println("Getting Response value following string");
-			 while( -1 != (temp=is.read())){
-				 System.out.print( (char)temp);
+			 StringBuffer sb = new StringBuffer();
+			 for (temp = is.read(); -1 != temp ;temp = is.read() ) {
+				 sb.append((char)temp);
 			 }
-			
-			 os.close();
+//			 while( -1 != (temp=is.read())){
+//				 sb.append((char)temp);
+//			 }
+
+			 System.out.println(sb.toString());
 			 socket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
